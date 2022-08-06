@@ -2,15 +2,13 @@
 
 namespace Modules\User\Http\Controllers;
 
-use App\Models\User;
 use Brryfrmnn\Transformers\Json;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Js;
+use Modules\User\Entities\Generation;
 
-class UserController extends Controller
+class GenerationController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -19,18 +17,11 @@ class UserController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = User::join('generations', 'generations.id', "=", 'users.generation_id')
-                ->join("roles", 'roles.id', '=', 'users.role_id')
-                ->select(
-                    'users.name as name',
-                    'users.email',
-                    'users.nim',
-                    'generations.name as generation',
-                    'roles.name as role'
-                )
-                ->search($request->search)
-                ->paginate(5);
-            return Json::response($user);
+            $generation = Generation::join("users", 'generations.id', '=', "users.generation_id")
+                ->select('generations.*')
+                ->paginate($request->input("paginate", 6));
+
+            return Json::response($generation);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
         } catch (\Illuminate\Database\QueryException $e) {
@@ -45,7 +36,8 @@ class UserController extends Controller
      * @return Renderable
      */
     public function create()
-    { //
+    {
+        return view('user::create');
     }
 
     /**
@@ -55,18 +47,12 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-
         try {
-            $master = new User();
-            $master->name = $request->name;
-            $master->nim = $request->nim;
-            $master->email = $request->email;
-            $master->password = Hash::make($request->password);
-            $master->generation_id = $request->generation_id;
-            $master->role_id = $request->role_id;
-            $master->save();
+            $generation = new Generatio();
+            $generation->name = $request->name;
+            $generation->save();
 
-            return Json::response($master);
+            return Json::response($generation);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
         } catch (\Illuminate\Database\QueryException $e) {
@@ -104,23 +90,7 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try {
-            $master = User::findOrFail($id);
-            $master->name = $request->input("name", $master->name);
-            $master->email = $request->input('email', $master->email);
-            $master->nim = $request->input("nim", $master->nim);
-            $master->password = $request->password ? Hash::make($request->password) : $master->password;
-            $master->generation_id = $request->input("generation_id", $master->generation_id);
-            $master->role_id = $request->input("role_id", $master->role_id);
-            $master->save();
-            return Json::response($master);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
-        } catch (\Illuminate\Database\QueryException $e) {
-            return Json::exception('Error Query ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
-        } catch (\ErrorException $e) {
-            return Json::exception('Error Exception ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
-        }
+        //
     }
 
     /**
@@ -130,6 +100,22 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            if (is_array($id)) {
+                $generation = Generation::whereIn('id', $id);
+                $generation->delete();
+            } else {
+                $generation = Generation::findOrFail($id);
+                $generation->delete();
+            }
+
+            return Json::response($generation);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return Json::exception('Error Query ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
+        } catch (\ErrorException $e) {
+            return Json::exception('Error Exception ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
+        }
     }
 }

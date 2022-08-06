@@ -1,36 +1,20 @@
 <?php
 
-namespace Modules\Auth\Http\Controllers;
+namespace Modules\User\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Brryfrmnn\Transformers\Json;
-use Illuminate\Support\Facades\Hash;
 
-class AuthController extends Controller
+class RoleController extends Controller
 {
     /**
      * Display a listing of the resource.
      * @return Renderable
      */
-    public function login(Request $request)
+    public function index()
     {
-        try {
-            $user = User::where('nim', $request->nim)->orWhere('email', $request->nim)->first();
-            if (!$user || !Hash::check($request->password, $user->password)) {
-                return Json::exception('Password Anda salah');
-            }
-            $master = $user->createToken('auth')->plainTextToken;
-            return Json::response($master);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
-        } catch (\Illuminate\Database\QueryException $e) {
-            return Json::exception('Error Query ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
-        } catch (\ErrorException $e) {
-            return Json::exception('Error Exception ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
-        }
+        return view('user::index');
     }
 
     /**
@@ -39,7 +23,7 @@ class AuthController extends Controller
      */
     public function create()
     {
-        return view('auth::create');
+        return view('user::create');
     }
 
     /**
@@ -59,7 +43,7 @@ class AuthController extends Controller
      */
     public function show($id)
     {
-        return view('auth::show');
+        return view('user::show');
     }
 
     /**
@@ -69,7 +53,7 @@ class AuthController extends Controller
      */
     public function edit($id)
     {
-        return view('auth::edit');
+        return view('user::edit');
     }
 
     /**
