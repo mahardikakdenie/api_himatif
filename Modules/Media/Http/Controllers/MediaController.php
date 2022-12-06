@@ -1,14 +1,14 @@
 <?php
 
-namespace Modules\User\Http\Controllers;
+namespace Modules\Media\Http\Controllers;
 
 use Brryfrmnn\Transformers\Json;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\User\Entities\Role;
+use Modules\Media\Entities\Media;
 
-class RoleController extends Controller
+class MediaController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -17,10 +17,10 @@ class RoleController extends Controller
     public function index(Request $request)
     {
         try {
-            $role = Role::entities($request->entities)
-                ->paginate(intval($request->input('paginate', 5)));
+            $media = Media::group('module', $request->module)
+                ->get();
 
-            return Json::response($role);
+            return Json::response($media);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
         } catch (\Illuminate\Database\QueryException $e) {
@@ -34,13 +34,26 @@ class RoleController extends Controller
      * Show the form for creating a new resource.
      * @return Renderable
      */
+    public function create()
+    {
+        return view('media::create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     * @param Request $request
+     * @return Renderable
+     */
     public function store(Request $request)
     {
         try {
-            $role = new Role();
-            $role->name = $request->name;
-            $role->save();
-            return Json::response($role);
+            $media = new Media();
+            $path = $request->media->store("images");
+            $media->url = $path;
+            $media->module = $request->module;
+            $media->save();
+
+            return Json::response($media);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
         } catch (\Illuminate\Database\QueryException $e) {
@@ -51,23 +64,13 @@ class RoleController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     * @param Request $request
-     * @return Renderable
-     */
-    public function create(Request $request)
-    {
-        //
-    }
-
-    /**
      * Show the specified resource.
      * @param int $id
      * @return Renderable
      */
     public function show($id)
     {
-        return view('user::show');
+        return view('media::show');
     }
 
     /**
@@ -77,7 +80,7 @@ class RoleController extends Controller
      */
     public function edit($id)
     {
-        return view('user::edit');
+        return view('media::edit');
     }
 
     /**

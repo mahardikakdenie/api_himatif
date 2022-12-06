@@ -2,35 +2,19 @@
 
 namespace Modules\Auth\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Brryfrmnn\Transformers\Json;
-use Illuminate\Support\Facades\Hash;
 
-class AuthController extends Controller
+class RegisterController extends Controller
 {
     /**
      * Display a listing of the resource.
      * @return Renderable
      */
-    public function login(Request $request)
+    public function index()
     {
-        try {
-            $user = User::where('nim', $request->username)->orWhere('email', $request->username)->first();
-            if (!$user || !Hash::check($request->password, $user->password)) {
-                return Json::exception('Password Anda salah');
-            }
-            $master = $user->createToken('auth')->plainTextToken;
-            return Json::response($master);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
-        } catch (\Illuminate\Database\QueryException $e) {
-            return Json::exception('Error Query ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
-        } catch (\ErrorException $e) {
-            return Json::exception('Error Exception ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
-        }
+        return view('auth::index');
     }
 
     /**
@@ -49,7 +33,14 @@ class AuthController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $user = new User();
+            $user->name = $request->name;
+            $user->nim = $request->nim;
+            $user->email = $request->email
+        } catch (\Throwable $th) {
+            //throw $th;
+        }        
     }
 
     /**

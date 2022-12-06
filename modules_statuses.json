@@ -1,4 +1,6 @@
 {
     "Auth": true,
-    "User": true
+    "User": true,
+    "Medias": true,
+    "Media": true
 }

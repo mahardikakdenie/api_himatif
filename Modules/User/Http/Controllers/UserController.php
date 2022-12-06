@@ -19,17 +19,9 @@ class UserController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = User::join('generations', 'generations.id', "=", 'users.generation_id')
-                ->join("roles", 'roles.id', '=', 'users.role_id')
-                ->select(
-                    'users.name as name',
-                    'users.email',
-                    'users.nim',
-                    'generations.name as generation',
-                    'roles.name as role'
-                )
+            $user = User::entities($request->entities)
                 ->search($request->search)
-                ->paginate(5);
+                ->paginate(intval($request->input('paginate', 5)));
             return Json::response($user);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
@@ -44,8 +36,19 @@ class UserController extends Controller
      * Show the form for creating a new resource.
      * @return Renderable
      */
-    public function create()
-    { //
+    public function me(Request $request)
+    {
+        try {
+            $user_id = $request->user()->id;
+            $me = User::entities($request->entities)->findOrFail($user_id);
+            return Json::response($me);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return Json::exception('Error Query ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
+        } catch (\ErrorException $e) {
+            return Json::exception('Error Exception ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
+        }
     }
 
     /**
@@ -64,6 +67,7 @@ class UserController extends Controller
             $master->password = Hash::make($request->password);
             $master->generation_id = $request->generation_id;
             $master->role_id = $request->role_id;
+            $master->media_id = $request->media_id;
             $master->save();
 
             return Json::response($master);
@@ -81,9 +85,18 @@ class UserController extends Controller
      * @param int $id
      * @return Renderable
      */
-    public function show($id)
+    public function show($id, Request $request)
     {
-        return view('user::show');
+        try {
+            $user = User::entities($request->entities)->findOrFail($id);
+            return Json::response($user);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return Json::exception('Error Exceptions ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return Json::exception('Error Query ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
+        } catch (\ErrorException $e) {
+            return Json::exception('Error Exception ' . $debug = env('APP_DEBUG', false) == true ? $e : '');
+        }
     }
 
     /**
@@ -112,6 +125,8 @@ class UserController extends Controller
             $master->password = $request->password ? Hash::make($request->password) : $master->password;
             $master->generation_id = $request->input("generation_id", $master->generation_id);
             $master->role_id = $request->input("role_id", $master->role_id);
+            $master->status = $request->input("status", $master->status);
+            $master->media_id = $request->media_id;
             $master->save();
             return Json::response($master);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {

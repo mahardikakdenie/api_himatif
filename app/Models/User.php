@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Helpers\Elequent\MethodsHelpers;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Media\Entities\Media;
 use Modules\User\Entities\Generation;
 use Modules\User\Entities\Role;
 
@@ -56,6 +58,11 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class, 'role_id');
     }
 
+    public function media()
+    {
+        return $this->belongsTo(Media::class, 'role_id');
+    }
+
     public function scopeSearch($query, $search)
     {
         if ($search) {
@@ -67,15 +74,6 @@ class User extends Authenticatable
 
     public function scopeEntities($query, $entities)
     {
-        if ($entities != null || $entities != '') {
-            $entities = str_replace(' ', '', $entities);
-            $entities = explode(',', $entities);
-
-            try {
-                return $query = $query->with($entities);
-            } catch (\Throwable $th) {
-                return Json::exception(null, validator()->errors());
-            }
-        }
+        MethodsHelpers::entities($query, $entities);
     }
 }

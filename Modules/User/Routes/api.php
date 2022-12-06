@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Modules\User\Http\Controllers\RoleController;
 use Modules\User\Http\Controllers\UserController;
 
 /*
@@ -19,9 +20,19 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::prefix('user')->group(function () {
-    Route::prefix('manage')->middleware(['auth:sanctum', "role:pengurus"])->group(function () {
-        Route::get('', [UserController::class, 'index']);
-        Route::post('', [UserController::class, 'store']);
-        Route::put('{id}', [UserController::class, 'update']);
+    Route::get('me', [UserController::class, 'me'])->middleware('auth:sanctum');
+    Route::prefix('manage')
+        ->middleware(['auth:sanctum', "role:1"])->group(function () {
+            Route::get('', [UserController::class, 'index']);
+            Route::post('add', [UserController::class, 'store']);
+            Route::put('{id}', [UserController::class, 'update']);
+            Route::get('{id}', [UserController::class, 'show']);
+        });
+});
+
+Route::prefix('role')->group(function () {
+    Route::prefix('manage')->group(function () {
+        Route::get('', [RoleController::class, 'index']);
+        Route::post('', [RoleController::class, 'store']);
     });
 });
